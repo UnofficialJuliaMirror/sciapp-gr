@@ -2375,10 +2375,19 @@ void plot_process_window(gr_meta_args_t *subplot_args) {
   }
 
   if (args_has_keyword(subplot_args, "panzoom")) {
+    if (!args_has_keyword(subplot_args, "original_xrange")) {
+      args_values(subplot_args, "xrange", "dd", &x_min, &x_max);
+      gr_meta_args_push(subplot_args, "original_xrange", "dd", x_min, x_max);
+    }
+    if (!args_has_keyword(subplot_args, "original_yrange")) {
+      args_values(subplot_args, "yrange", "dd", &y_min, &y_max);
+      gr_meta_args_push(subplot_args, "original_yrange", "dd", y_min, y_max);
+    }
     args_values(subplot_args, "panzoom", "ddd", &x, &y, &zoom);
     gr_panzoom(x, y, zoom, &x_min, &x_max, &y_min, &y_max);
     args_update(subplot_args, "xrange", "dd", x_min, x_max);
     args_update(subplot_args, "yrange", "dd", y_min, y_max);
+    args_remove(subplot_args, "panzoom");
   }
 
   if (str_equals_any(kind, 6, "wireframe", "surface", "plot3", "scatter3", "polar", "trisurf")) {
@@ -2503,7 +2512,8 @@ void plot_store_coordinate_ranges(gr_meta_args_t *subplot_args) {
     double min_component = DBL_MAX;
     double max_component = -DBL_MAX;
     double step = -DBL_MAX;
-    if (strchr(fmt, **current_component_name) == NULL) {
+    if (strchr(fmt, **current_component_name) == NULL || args_has_keyword(subplot_args, (*current_range_keys)[1])) {
+      ++current_range_keys;
       ++current_component_name;
       continue;
     }
@@ -2528,7 +2538,7 @@ void plot_store_coordinate_ranges(gr_meta_args_t *subplot_args) {
     } else {
       args_values(subplot_args, (*current_range_keys)[0], "dd", &min_component, &max_component);
     }
-    args_update(subplot_args, (*current_range_keys)[1], "dd", min_component, max_component);
+    gr_meta_args_push(subplot_args, (*current_range_keys)[1], "dd", min_component, max_component);
     ++current_range_keys;
     ++current_component_name;
   }
