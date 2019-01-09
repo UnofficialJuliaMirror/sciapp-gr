@@ -2378,10 +2378,16 @@ void plot_process_window(gr_meta_args_t *subplot_args) {
     if (!args_has_keyword(subplot_args, "original_xrange")) {
       args_values(subplot_args, "xrange", "dd", &x_min, &x_max);
       gr_meta_args_push(subplot_args, "original_xrange", "dd", x_min, x_max);
+      args_values(subplot_args, "adjust_xlim", "i", &adjust_xlim);
+      gr_meta_args_push(subplot_args, "original_adjust_xlim", "i", adjust_xlim);
+      args_update(subplot_args, "adjust_xlim", "i", 0);
     }
     if (!args_has_keyword(subplot_args, "original_yrange")) {
       args_values(subplot_args, "yrange", "dd", &y_min, &y_max);
       gr_meta_args_push(subplot_args, "original_yrange", "dd", y_min, y_max);
+      args_values(subplot_args, "adjust_ylim", "i", &adjust_ylim);
+      gr_meta_args_push(subplot_args, "original_adjust_ylim", "i", adjust_ylim);
+      args_update(subplot_args, "adjust_ylim", "i", 0);
     }
     args_values(subplot_args, "panzoom", "ddd", &x, &y, &zoom);
     gr_panzoom(x, y, zoom, &x_min, &x_max, &y_min, &y_max);
@@ -2400,7 +2406,9 @@ void plot_process_window(gr_meta_args_t *subplot_args) {
   if (!(scale & GR_OPTION_X_LOG)) {
     args_values(subplot_args, "adjust_xlim", "i", &adjust_xlim);
     if (adjust_xlim) {
+      logger((stderr, "xrange before \"gr_adjustlimits\": (%f, %f)\n", x_min, x_max));
       gr_adjustlimits(&x_min, &x_max);
+      logger((stderr, "xrange after \"gr_adjustlimits\": (%f, %f)\n", x_min, x_max));
     }
     x_major_count = major_count;
     x_tick = gr_tick(x_min, x_max) / x_major_count;
@@ -2425,7 +2433,9 @@ void plot_process_window(gr_meta_args_t *subplot_args) {
   if (!(scale & GR_OPTION_Y_LOG)) {
     args_values(subplot_args, "adjust_ylim", "i", &adjust_ylim);
     if (adjust_ylim) {
+      logger((stderr, "yrange before \"gr_adjustlimits\": (%f, %f)\n", y_min, y_max));
       gr_adjustlimits(&y_min, &y_max);
+      logger((stderr, "yrange after \"gr_adjustlimits\": (%f, %f)\n", y_min, y_max));
     }
     y_major_count = major_count;
     y_tick = gr_tick(y_min, y_max) / y_major_count;
@@ -2461,7 +2471,9 @@ void plot_process_window(gr_meta_args_t *subplot_args) {
     if (!(scale & GR_OPTION_Z_LOG)) {
       args_values(subplot_args, "adjust_zlim", "i", &adjust_zlim);
       if (adjust_zlim) {
+        logger((stderr, "zrange before \"gr_adjustlimits\": (%f, %f)\n", z_min, z_max));
         gr_adjustlimits(&z_min, &z_max);
+        logger((stderr, "zrange after \"gr_adjustlimits\": (%f, %f)\n", z_min, z_max));
       }
       z_major_count = major_count;
       z_tick = gr_tick(z_min, z_max) / z_major_count;
