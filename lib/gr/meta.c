@@ -128,7 +128,8 @@ static void debug_printf(const char *format, ...) {
 /* ------------------------- memwriter ------------------------------------------------------------------------------ */
 
 #define MEMWRITER_INITIAL_SIZE 32768
-#define MEMWRITER_SIZE_INCREMENT 32768
+#define MEMWRITER_EXPONENTIAL_INCREASE_UNTIL 268435456
+#define MEMWRITER_LINEAR_INCREMENT_SIZE 67108864
 
 #define ETB '\027'
 
@@ -6100,12 +6101,25 @@ error_t memwriter_insert(memwriter_t *memwriter, int index, const char *str) {
 
 error_t memwriter_enlarge_buf(memwriter_t *memwriter, size_t size_increment) {
   void *new_buf;
+  int tmp;
 
   if (size_increment == 0) {
-    size_increment = MEMWRITER_SIZE_INCREMENT;
+    if(memwriter->capacity >= MEMWRITER_EXPONENTIAL_INCREASE_UNTIL) {
+      size_increment = MEMWRITER_LINEAR_INCREMENT_SIZE;
+    } else {
+      size_increment = memwriter->capacity;
+    }
   } else {
-    /* round up to the next `MEMWRITER_SIZE_INCREMENT` step */
-    size_increment = ((size_increment - 1) / MEMWRITER_SIZE_INCREMENT + 1) * MEMWRITER_SIZE_INCREMENT;
+    /* round up to the next `MEMWRITER_LINEAR_INCREMENT_SIZE` step */
+    if(memwriter->capacity >= MEMWRITER_EXPONENTIAL_INCREASE_UNTIL) {
+      size_increment = ((size_increment - 1) / MEMWRITER_LINEAR_INCREMENT_SIZE + 1) * MEMWRITER_LINEAR_INCREMENT_SIZE;
+    } else {
+      tmp = memwriter->capacity;
+      while(size_increment > tmp - memwriter->capacity) {
+        tmp *= 2;
+      }
+      size_increment = tmp - memwriter->capacity;
+    }
   }
   new_buf = realloc(memwriter->buf, memwriter->capacity + size_increment);
   if (new_buf == NULL) {
