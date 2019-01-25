@@ -655,6 +655,7 @@ static unsigned int str_to_uint(const char *str, int *was_successful);
 static int int_equals_any(int number, unsigned int n, ...);
 static int str_equals_any(const char *str, unsigned int n, ...);
 static int uppercase_count(const char *str);
+static unsigned long next_or_equal_power2(unsigned long num);
 
 
 /* ========================= methods ================================================================================ */
@@ -3862,6 +3863,22 @@ int uppercase_count(const char *str) {
   return uppercase_count;
 }
 
+unsigned long next_or_equal_power2(unsigned long num) {
+#if defined(__GNUC__) || defined(__clang__)
+  return 1ul << ((CHAR_BIT * sizeof(unsigned long)) - __builtin_clzl(num));
+#elif defined(_MSC_VER)
+  unsigned long index;
+  _BitScanReverse(&index, num);
+  return 1ul << index;
+#else
+  unsigned long power = 1;
+  while (power < num) {
+    power <<= 1;
+  }
+  return power;
+#endif
+}
+
 
 /* ========================= methods ================================================================================ */
 
@@ -6097,22 +6114,6 @@ error_t memwriter_erase(memwriter_t *memwriter, int index, int count) {
 
 error_t memwriter_insert(memwriter_t *memwriter, int index, const char *str) {
   return memwriter_replace(memwriter, index, 0, str);
-}
-
-unsigned long next_or_equal_power2(unsigned long num) {
-#if defined(__GNUC__) || defined(__clang__)
-  return 1ul << ((CHAR_BIT * sizeof(unsigned long)) - __builtin_clzl(num));
-#elif defined(_MSC_VER)
-  unsigned long index;
-  _BitScanReverse(&index, num);
-  return 1ul << index;
-#else
-  unsigned long power = 1;
-  while (power < num) {
-    power <<= 1;
-  }
-  return power;
-#endif
 }
 
 error_t memwriter_enlarge_buf(memwriter_t *memwriter, size_t size_increment) {
