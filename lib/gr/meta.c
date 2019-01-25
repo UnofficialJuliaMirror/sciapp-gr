@@ -6099,9 +6099,24 @@ error_t memwriter_insert(memwriter_t *memwriter, int index, const char *str) {
   return memwriter_replace(memwriter, index, 0, str);
 }
 
+unsigned long next_or_equal_power2(unsigned long num) {
+#if defined(__GNUC__) || defined(__clang__)
+  return 1ul << ((CHAR_BIT * sizeof(unsigned long)) - __builtin_clzl(num));
+#elif defined(_MSC_VER)
+  unsigned long index;
+  _BitScanReverse(&index, num);
+  return 1ul << index;
+#else
+  unsigned long power = 1;
+  while (power < num) {
+    power <<= 1;
+  }
+  return power;
+#endif
+}
+
 error_t memwriter_enlarge_buf(memwriter_t *memwriter, size_t size_increment) {
   void *new_buf;
-  int tmp;
 
   if (size_increment == 0) {
     if(memwriter->capacity >= MEMWRITER_EXPONENTIAL_INCREASE_UNTIL) {
@@ -6114,11 +6129,7 @@ error_t memwriter_enlarge_buf(memwriter_t *memwriter, size_t size_increment) {
     if(memwriter->capacity >= MEMWRITER_EXPONENTIAL_INCREASE_UNTIL) {
       size_increment = ((size_increment - 1) / MEMWRITER_LINEAR_INCREMENT_SIZE + 1) * MEMWRITER_LINEAR_INCREMENT_SIZE;
     } else {
-      tmp = memwriter->capacity;
-      while(size_increment > tmp - memwriter->capacity) {
-        tmp *= 2;
-      }
-      size_increment = tmp - memwriter->capacity;
+      size_increment = next_or_equal_power2(memwriter->capacity + size_increment) - memwriter->capacity;
     }
   }
   new_buf = realloc(memwriter->buf, memwriter->capacity + size_increment);
