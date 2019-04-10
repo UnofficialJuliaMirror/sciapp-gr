@@ -1230,6 +1230,7 @@ static tojson_permanent_state_t tojson_permanent_state = {complete, 0};
 
 static int plot_static_variables_initialized = 0;
 const char *plot_hierarchy_names[] = {"root", "plots", "subplots", "series", NULL};
+static gr_meta_flags_t global_flags = 0;
 
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~ args ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1568,6 +1569,25 @@ unsigned int gr_meta_max_plotid(void)
     }
 
   return args_array_length;
+}
+
+gr_meta_flags_t gr_meta_flags(void)
+{
+  return global_flags;
+}
+
+gr_meta_flags_t gr_meta_flags_add(gr_meta_flags_t flags)
+{
+  global_flags |= flags;
+
+  return global_flags;
+}
+
+gr_meta_flags_t gr_meta_flags_del(gr_meta_flags_t flags)
+{
+  global_flags &= ~flags;
+
+  return global_flags;
 }
 
 
@@ -3091,6 +3111,7 @@ error_t plot_init_static_variables(void)
       logger((stderr, "Initializing static plot variables\n"));
       event_queue = event_queue_new();
       processing_events = 0;
+      global_flags = 0;
       global_root_args = gr_newmeta();
       error_cleanup_and_set_error_if(global_root_args == NULL, ERROR_MALLOC);
       error = plot_init_args_structure(global_root_args, plot_hierarchy_names, 1);
@@ -3193,7 +3214,14 @@ error_t plot_merge_args(gr_meta_args_t *args, const gr_meta_args_t *merge_args, 
     }
   else
     {
-      uint_map_insert_default(hierarchy_to_id, "plots", active_plot_index);
+      if (global_flags & GR_META_FLAG_APPEND_PLOTS)
+        {
+          uint_map_insert(hierarchy_to_id, "plots", 0);
+        }
+      else
+        {
+          uint_map_insert_default(hierarchy_to_id, "plots", active_plot_index);
+        }
       uint_map_at(hierarchy_to_id, "plots", (unsigned int *)&plot_id);
     }
   if (subplot_id > 0)
@@ -3202,7 +3230,14 @@ error_t plot_merge_args(gr_meta_args_t *args, const gr_meta_args_t *merge_args, 
     }
   else
     {
-      uint_map_insert_default(hierarchy_to_id, "subplots", 1);
+      if (global_flags & GR_META_FLAG_APPEND_PLOTS)
+        {
+          uint_map_insert(hierarchy_to_id, "subplots", 0);
+        }
+      else
+        {
+          uint_map_insert_default(hierarchy_to_id, "subplots", 0);
+        }
       uint_map_at(hierarchy_to_id, "subplots", (unsigned int *)&subplot_id);
     }
   if (series_id > 0)
@@ -3211,7 +3246,14 @@ error_t plot_merge_args(gr_meta_args_t *args, const gr_meta_args_t *merge_args, 
     }
   else
     {
-      uint_map_insert_default(hierarchy_to_id, "series", 1);
+      if (global_flags & GR_META_FLAG_APPEND_PLOTS)
+        {
+          uint_map_insert(hierarchy_to_id, "series", 0);
+        }
+      else
+        {
+          uint_map_insert_default(hierarchy_to_id, "series", 0);
+        }
       uint_map_at(hierarchy_to_id, "series", (unsigned int *)&series_id);
     }
   /* special case: if the plot_id is `1` (and it is the first call of `plot_merge_args`), clear the plot argument
@@ -4133,6 +4175,11 @@ error_t plot_get_args_in_hierarchy(gr_meta_args_t *args, const char **hierarchy_
           return_error_if(current_arg == NULL, ERROR_INTERNAL);
           arg_first_value(current_arg, "A", &args_array, &args_array_length);
           uint_map_at(hierarchy_to_id, *current_hierarchy_name_ptr, &current_id);
+          /* Check for the invalid id 0 because id 0 is set for append mode */
+          if (current_id == 0)
+            {
+              current_id = args_array_length;
+            }
           if (current_id > args_array_length)
             {
               plot_init_args_structure(current_args, current_hierarchy_name_ptr - 1, current_id);
