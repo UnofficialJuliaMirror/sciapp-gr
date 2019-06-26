@@ -99,6 +99,7 @@ extern "C"
   DLLEXPORT void gr_setcharexpan(double);
   DLLEXPORT void gr_setcharspace(double);
   DLLEXPORT void gr_settextcolorind(int);
+  DLLEXPORT void gr_inqtextcolorind(int *);
   DLLEXPORT void gr_setcharheight(double);
   DLLEXPORT void gr_setcharup(double, double);
   DLLEXPORT void gr_settextpath(int);
@@ -184,6 +185,7 @@ extern "C"
   DLLEXPORT char *gr_getgraphics(void);
   DLLEXPORT int gr_drawgraphics(char *);
   DLLEXPORT void gr_mathtex(double, double, char *);
+  DLLEXPORT void gr_mathtex2(double, double, const char *);
   DLLEXPORT void gr_inqmathtex(double, double, char *, double *, double *);
   DLLEXPORT void gr_beginselection(int, int);
   DLLEXPORT void gr_endselection(void);
