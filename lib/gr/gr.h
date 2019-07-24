@@ -55,6 +55,11 @@ extern "C"
 
   typedef void (*gr_meta_event_callback_t)(const gr_meta_event_t *);
 
+  typedef enum
+  {
+    GR_META_FLAG_APPEND_PLOTS = 1
+  } gr_meta_flags_t;
+
   DLLEXPORT void gr_initgr(void);
   DLLEXPORT void gr_opengks(void);
   DLLEXPORT void gr_closegks(void);
@@ -223,6 +228,9 @@ extern "C"
   DLLEXPORT int gr_registermeta(gr_meta_event_type_t, gr_meta_event_callback_t);
   DLLEXPORT int gr_unregistermeta(gr_meta_event_type_t);
   DLLEXPORT unsigned int gr_meta_max_plotid(void);
+  DLLEXPORT gr_meta_flags_t gr_meta_flags(void);
+  DLLEXPORT gr_meta_flags_t gr_meta_flags_add(gr_meta_flags_t flags);
+  DLLEXPORT gr_meta_flags_t gr_meta_flags_del(gr_meta_flags_t flags);
 #ifndef NDEBUG
   DLLEXPORT void gr_dumpmeta(const gr_meta_args_t *, FILE *);
   DLLEXPORT void gr_dumpmeta_json(const gr_meta_args_t *, FILE *);
