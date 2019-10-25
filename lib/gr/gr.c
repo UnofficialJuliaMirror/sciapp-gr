@@ -2702,6 +2702,19 @@ void gr_settextcolorind(int color)
 }
 
 /*!
+ * Gets the current text color index.
+ *
+ * \param[out] color The text color index (COLOR < 1256)
+ *
+ * This function gets the color of text output primitives.
+ */
+void gr_inqtextcolorind(int *color)
+{
+  int errind;
+  gks_inq_text_color_index(&errind, color);
+}
+
+/*!
  * Set the current character height.
  *
  * \param[in] height Text height value

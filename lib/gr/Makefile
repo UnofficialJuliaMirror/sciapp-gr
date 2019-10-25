@@ -11,7 +11,7 @@ UNAME := $(shell uname)
 
       GROBJS = gr.o text.o contour.o spline.o gridit.o strlib.o io.o image.o \
                delaunay.o interp2.o md5.o import.o meta.o shade.o grforbnd.o \
-               contourf.o boundary.o
+               contourf.o boundary.o mathtex2.o mathtex2.tab.o
       GSDEFS =
      DEFINES = $(GSDEFS)
     INCLUDES = -I../gks -I$(THIRDPARTYDIR)/include
@@ -46,6 +46,9 @@ GR_VERSION_H_DEPS := .FORCE
 else
 GR_VERSION_H_DEPS :=
 endif
+
+.SUFFIXES:
+.SUFFIXES: .c .o
 
 .c.o:
 	$(CC) -c $(INCLUDES) $(CFLAGS) $<
@@ -131,3 +134,5 @@ meta.o: gr.h
 shade.o: gr.h
 grforbnd.o: gr.h
 boundary.o: boundary.h
+mathtex2.o: mathtex2.h tempbuffer.inl
+mathtex2.tab.o: mathtex2.h
